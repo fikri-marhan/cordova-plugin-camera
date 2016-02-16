@@ -80,26 +80,32 @@ public class FileHelper {
     public static String getRealPathFromURI_API19(Context context, Uri uri) {
         String filePath = "";
         try {
-            String wholeID = DocumentsContract.getDocumentId(uri);
+              if (String.valueOf(uri).contains("document")) {
 
-            // Split at colon, use second item in the array
-            String id = wholeID.indexOf(":") > -1 ? wholeID.split(":")[1] : wholeID.indexOf(";") > -1 ? wholeID
-                    .split(";")[1] : wholeID;
+                     String wholeID = DocumentsContract.getDocumentId(uri);
+                     
+                     // Split at colon, use second item in the array
+                     String id = wholeID.indexOf(":") > -1 ? wholeID.split(":")[1] : wholeID.indexOf(";") > -1 ? wholeID
+                        .split(";")[1] : wholeID;
+                     
+                     String[] column = { MediaStore.Images.Media.DATA };
+                     
+                     // where id is equal to
+                     String sel = MediaStore.Images.Media._ID + "=?";
+                     
+                     Cursor cursor = context.getContentResolver().query(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, column,
+                        sel, new String[] { id }, null);
+                     
+                     int columnIndex = cursor.getColumnIndex(column[0]);
+                     
+                     if (cursor.moveToFirst()) {
+                     filePath = cursor.getString(columnIndex);
+                     }
+                     cursor.close();
 
-            String[] column = { MediaStore.Images.Media.DATA };
-
-            // where id is equal to
-            String sel = MediaStore.Images.Media._ID + "=?";
-
-            Cursor cursor = context.getContentResolver().query(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, column,
-                    sel, new String[] { id }, null);
-
-            int columnIndex = cursor.getColumnIndex(column[0]);
-
-            if (cursor.moveToFirst()) {
-                filePath = cursor.getString(columnIndex);
-            }
-            cursor.close();
+              } else {
+                     filePath =  getRealPathFromURI_API11to18(context, uri);
+              }
         } catch (Exception e) {
             filePath = "";
         }
